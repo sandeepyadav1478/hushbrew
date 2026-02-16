@@ -1,6 +1,6 @@
 # hushbrew
 
-[![CI](https://github.com/user/hushbrew/actions/workflows/ci.yml/badge.svg)](https://github.com/user/hushbrew/actions/workflows/ci.yml)
+[![CI](https://github.com/sandeepyadav1478/homebrew-hushbrew/actions/workflows/ci.yml/badge.svg)](https://github.com/sandeepyadav1478/homebrew-hushbrew/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Automatic daily Homebrew upgrades for macOS that stay out of your way.
@@ -30,31 +30,20 @@ Runs as a LaunchAgent, detects meetings before starting, throttles bandwidth so 
 ### Using Homebrew (Recommended)
 
 ```bash
-# Tap the repository
 brew tap sandeepyadav1478/hushbrew
-
-# Install hushbrew
 brew install hushbrew
-
-# Start the service
-brew services start hushbrew
+hushbrew start
 ```
 
-Or in one line:
-```bash
-brew install sandeepyadav1478/hushbrew/hushbrew && brew services start hushbrew
-```
-
-This will:
-1. Install scripts to `~/.local/bin/`
-2. Create a default config at `~/.config/hushbrew/config`
-3. Set up a LaunchAgent that triggers at 10 AM / 2 PM / 6 PM
+The `hushbrew start` command will:
+1. Run setup (first time only) - installs scripts to `~/.local/bin/` and creates config
+2. Start the LaunchAgent that triggers at 10 AM, 2 PM, and 6 PM daily
 
 ### Manual Installation (Alternative)
 
 ```bash
-git clone https://github.com/sandeepyadav1478/hushbrew.git
-cd hushbrew
+git clone https://github.com/sandeepyadav1478/homebrew-hushbrew.git
+cd homebrew-hushbrew
 ./install.sh
 ```
 
@@ -69,7 +58,7 @@ make install
 ### Using Homebrew
 
 ```bash
-brew services stop hushbrew
+hushbrew stop
 brew uninstall hushbrew
 ```
 

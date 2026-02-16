@@ -4,11 +4,11 @@
 # Formula for hushbrew - Automatic daily Homebrew upgrades for macOS
 class Hushbrew < Formula
   desc "Automatic daily Homebrew upgrades for macOS that stay out of your way"
-  homepage "https://github.com/sandeepyadav1478/hushbrew"
-  url "https://github.com/sandeepyadav1478/hushbrew/archive/refs/tags/v1.0.3.tar.gz"
-  sha256 "4bff80f799892e4e39230d6acb921925dd6f8646a3028e2a080bd92666233391"
+  homepage "https://github.com/sandeepyadav1478/homebrew-hushbrew"
+  url "https://github.com/sandeepyadav1478/homebrew-hushbrew/archive/refs/tags/v1.0.3.tar.gz"
+  sha256 "c86a12d6b98484a070fa9b54bad39295d5c6b5e267faaac740ef4c97c2e60d23"
   license "MIT"
-  head "https://github.com/sandeepyadav1478/hushbrew.git", branch: "main"
+  head "https://github.com/sandeepyadav1478/homebrew-hushbrew.git", branch: "main"
 
   # hushbrew requires GNU timeout from coreutils
   depends_on "coreutils"
