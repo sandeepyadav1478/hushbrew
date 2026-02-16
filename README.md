@@ -31,7 +31,7 @@ Runs as a LaunchAgent, detects meetings before starting, throttles bandwidth so 
 
 ```bash
 # Tap the repository
-brew tap YOUR_USERNAME/hushbrew
+brew tap sandeepyadav1478/hushbrew
 
 # Install hushbrew
 brew install hushbrew
@@ -42,7 +42,7 @@ brew services start hushbrew
 
 Or in one line:
 ```bash
-brew install YOUR_USERNAME/hushbrew/hushbrew && brew services start hushbrew
+brew install sandeepyadav1478/hushbrew/hushbrew && brew services start hushbrew
 ```
 
 This will:
@@ -53,7 +53,7 @@ This will:
 ### Manual Installation (Alternative)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/hushbrew.git
+git clone https://github.com/sandeepyadav1478/hushbrew.git
 cd hushbrew
 ./install.sh
 ```
