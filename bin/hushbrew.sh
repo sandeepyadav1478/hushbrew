@@ -311,13 +311,15 @@ if $update_ok; then
 
     if [ -n "$formulae_to_upgrade" ]; then
         log "INFO: Upgrading formulae: $formulae_to_upgrade"
+        set +e  # Temporarily disable exit-on-error to capture exit code
         run_with_timeout 900 "$BREW" upgrade --formula $formulae_to_upgrade
         formula_exit=$?
+        set -e  # Re-enable exit-on-error
 
         if [ "$formula_exit" -eq 124 ]; then
             add_error "Formula upgrade timed out (15 min)"
         elif [ "$formula_exit" -ne 0 ]; then
-            add_error "Formula upgrade failed (exit $formula_exit)"
+            add_error "Formula upgrade failed (exit $formula_exit) — may need sudo or app restart"
         fi
     else
         log "INFO: No formulae to upgrade"
@@ -346,13 +348,15 @@ if $update_ok; then
         fi
 
         log "INFO: Upgrading casks: $casks_to_upgrade"
+        set +e  # Temporarily disable exit-on-error to capture exit code
         run_with_timeout 900 "$BREW" upgrade --cask $casks_to_upgrade
         cask_exit=$?
+        set -e  # Re-enable exit-on-error
 
         if [ "$cask_exit" -eq 124 ]; then
             add_error "Cask upgrade timed out (15 min)"
         elif [ "$cask_exit" -ne 0 ]; then
-            add_error "Cask upgrade failed (exit $cask_exit)"
+            add_error "Cask upgrade failed (exit $cask_exit) — may need sudo or app restart"
         fi
     else
         log "INFO: No casks to upgrade"

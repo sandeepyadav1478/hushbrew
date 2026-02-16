@@ -38,7 +38,8 @@ cmd_setup() {
         exit 1
     fi
 
-    exec "$LIBEXEC/hushbrew-setup"
+    # Run setup script
+    "$LIBEXEC/hushbrew-setup"
 }
 
 cmd_start() {
@@ -49,11 +50,21 @@ cmd_start() {
         echo -e "${BLUE}First run detected - setting up hushbrew...${NC}"
         echo ""
         cmd_setup
+        setup_exit_code=$?
+        if [ $setup_exit_code -ne 0 ]; then
+            echo -e "${RED}Setup failed with exit code: $setup_exit_code${NC}" >&2
+            exit $setup_exit_code
+        fi
         echo ""
     fi
 
     echo -e "${BLUE}Starting hushbrew...${NC}"
-    if brew services start hushbrew 2>/dev/null; then
+
+    # Use our custom plist with calendar-based scheduling (not brew services)
+    launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.local.hushbrew.plist" 2>/dev/null
+    load_exit=$?
+
+    if [ $load_exit -eq 0 ]; then
         echo -e "${GREEN}✓ hushbrew started${NC}"
         echo ""
         echo "Schedule: 10 AM, 2 PM, 6 PM daily"
@@ -63,20 +74,28 @@ cmd_start() {
         echo "  hushbrew status  - Check status"
         echo "  hushbrew logs    - View logs"
         echo "  hushbrew stop    - Stop service"
+    elif [ $load_exit -eq 37 ] || [ $load_exit -eq 17 ]; then
+        echo -e "${YELLOW}Already running${NC}"
     else
-        echo -e "${YELLOW}Note: brew services not available, loading manually...${NC}"
-        launchctl bootstrap "gui/$(id -u)" "$HOME/Library/LaunchAgents/com.local.hushbrew.plist"
-        echo -e "${GREEN}✓ hushbrew loaded${NC}"
+        echo -e "${RED}Failed to start (exit code: $load_exit)${NC}" >&2
+        exit $load_exit
     fi
 }
 
 cmd_stop() {
     echo -e "${BLUE}Stopping hushbrew...${NC}"
-    if brew services stop hushbrew 2>/dev/null; then
+
+    # Unload our custom LaunchAgent
+    launchctl bootout "gui/$(id -u)/com.local.hushbrew" 2>/dev/null
+    stop_exit=$?
+
+    # Also stop brew services version if it's running
+    brew services stop hushbrew 2>/dev/null || true
+
+    if [ $stop_exit -eq 0 ] || [ $stop_exit -eq 3 ]; then
         echo -e "${GREEN}✓ hushbrew stopped${NC}"
     else
-        launchctl bootout "gui/$(id -u)/com.local.hushbrew" 2>/dev/null || true
-        echo -e "${GREEN}✓ hushbrew unloaded${NC}"
+        echo -e "${YELLOW}hushbrew was not running${NC}"
     fi
 }
 
@@ -105,7 +124,12 @@ cmd_status() {
 
     # Check if service is loaded
     if launchctl list 2>/dev/null | grep -q "com.local.hushbrew"; then
-        echo -e "${GREEN}✓${NC} Service is loaded and running"
+        exit_code=$(launchctl list 2>/dev/null | grep "com.local.hushbrew" | awk '{print $1}')
+        if [ "$exit_code" = "-" ] || [ "$exit_code" = "0" ]; then
+            echo -e "${GREEN}✓${NC} Service is running"
+        else
+            echo -e "${YELLOW}⚠${NC} Service loaded but exited with code: $exit_code"
+        fi
     else
         echo -e "${YELLOW}○${NC} Service is not loaded"
     fi
