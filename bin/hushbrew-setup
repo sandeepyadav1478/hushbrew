@@ -1,0 +1,72 @@
+#!/bin/bash
+#
+# hushbrew-setup — One-time setup script
+#
+# This script is run after `brew install hushbrew` to set up user directories.
+#
+
+set -euo pipefail
+
+echo "═══════════════════════════════════════════════════════════════════════"
+echo "  hushbrew Setup"
+echo "═══════════════════════════════════════════════════════════════════════"
+echo ""
+
+# Find where Homebrew installed hushbrew
+if [ -d "/opt/homebrew/opt/hushbrew/libexec" ]; then
+    LIBEXEC="/opt/homebrew/opt/hushbrew/libexec"
+elif [ -d "/usr/local/opt/hushbrew/libexec" ]; then
+    LIBEXEC="/usr/local/opt/hushbrew/libexec"
+else
+    echo "Error: Cannot find hushbrew installation" >&2
+    exit 1
+fi
+
+# Create directories
+mkdir -p "$HOME/.local/bin"
+mkdir -p "$HOME/.local/log"
+mkdir -p "$HOME/.config/hushbrew"
+mkdir -p "$HOME/Library/LaunchAgents"
+
+# Copy scripts
+cp "$LIBEXEC/hushbrew.sh" "$HOME/.local/bin/hushbrew.sh"
+cp "$LIBEXEC/brew-curl" "$HOME/.local/bin/brew-curl"
+chmod +x "$HOME/.local/bin/hushbrew.sh"
+chmod +x "$HOME/.local/bin/brew-curl"
+
+echo "✓ Installed scripts to ~/.local/bin/"
+
+# Create config if it doesn't exist
+if [ ! -f "$HOME/.config/hushbrew/config" ]; then
+    cat > "$HOME/.config/hushbrew/config" <<'EOF'
+# hushbrew configuration
+#
+# Exclusion lists — space-separated package names that should NOT be auto-upgraded.
+# Example: EXCLUDED_FORMULAE="node python@3.11"
+
+EXCLUDED_FORMULAE=""
+EXCLUDED_CASKS=""
+EOF
+    echo "✓ Created config at ~/.config/hushbrew/config"
+else
+    echo "✓ Config already exists at ~/.config/hushbrew/config"
+fi
+
+# Generate plist
+sed "s|__HOME__|$HOME|g" "$LIBEXEC/launchd/com.local.hushbrew.plist" > "$HOME/Library/LaunchAgents/com.local.hushbrew.plist"
+echo "✓ Created LaunchAgent plist"
+
+echo ""
+echo "═══════════════════════════════════════════════════════════════════════"
+echo "  Setup Complete!"
+echo "═══════════════════════════════════════════════════════════════════════"
+echo ""
+echo "To start hushbrew:"
+echo "  brew services start hushbrew"
+echo ""
+echo "Or load manually:"
+echo "  launchctl bootstrap gui/\$(id -u) ~/Library/LaunchAgents/com.local.hushbrew.plist"
+echo ""
+echo "To test manually:"
+echo "  ~/.local/bin/hushbrew.sh"
+echo ""
