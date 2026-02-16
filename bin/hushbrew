@@ -283,6 +283,7 @@ cmd_config_set() {
         echo "  bandwidth-limit <1-100>     - Bandwidth throttle percentage" >&2
         echo "  battery-threshold <1-100>   - Battery threshold percentage" >&2
         echo "  meeting-check <on|off>      - Toggle meeting detection" >&2
+        echo "  upgrade-strategy <all|leaves> - Upgrade strategy (all or leaves-only)" >&2
         exit 1
     fi
 
@@ -330,9 +331,23 @@ cmd_config_set() {
             fi
             echo -e "${GREEN}✓${NC} Set meeting-check to $value"
             ;;
+        upgrade-strategy)
+            if [ "$value" != "all" ] && [ "$value" != "leaves" ]; then
+                echo -e "${RED}Error: upgrade-strategy must be 'all' or 'leaves'${NC}" >&2
+                exit 1
+            fi
+            if grep -q "^UPGRADE_STRATEGY=" "$config_file" 2>/dev/null; then
+                sed -i.bak "s/^UPGRADE_STRATEGY=.*/UPGRADE_STRATEGY=\"$value\"/" "$config_file"
+                rm -f "$config_file.bak"
+            else
+                echo "" >> "$config_file"
+                echo "UPGRADE_STRATEGY=\"$value\"" >> "$config_file"
+            fi
+            echo -e "${GREEN}✓${NC} Set upgrade-strategy to $value"
+            ;;
         *)
             echo -e "${RED}Error: Unknown setting: $key${NC}" >&2
-            echo "Available settings: bandwidth-limit, battery-threshold, meeting-check" >&2
+            echo "Available settings: bandwidth-limit, battery-threshold, meeting-check, upgrade-strategy" >&2
             exit 1
             ;;
     esac
@@ -916,6 +931,9 @@ Config Settings:
   bandwidth-limit <1-100>     Bandwidth throttle percentage (default: 60)
   battery-threshold <1-100>   Battery threshold percentage (default: 15)
   meeting-check <on|off>      Toggle meeting detection (default: on)
+  upgrade-strategy <all|leaves>  Upgrade strategy (default: all)
+                                 all = upgrade everything
+                                 leaves = only top-level packages
 
 Exclusion Examples:
   hushbrew exclude add node                 Exclude node formula

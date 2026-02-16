@@ -46,6 +46,12 @@ if [ ! -f "$HOME/.config/hushbrew/config" ]; then
 
 EXCLUDED_FORMULAE=""
 EXCLUDED_CASKS=""
+
+# Upgrade strategy:
+#   "all" (default) - Upgrade all outdated packages
+#   "leaves" - Only upgrade top-level packages (what you explicitly installed)
+#              Dependencies are upgraded only when needed by leaves
+UPGRADE_STRATEGY="all"
 EOF
     echo "✓ Created config at ~/.config/hushbrew/config"
 else

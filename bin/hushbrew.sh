@@ -80,6 +80,7 @@ fi
 # Defaults
 EXCLUDED_FORMULAE=""
 EXCLUDED_CASKS=""
+UPGRADE_STRATEGY="all"  # Options: "all" or "leaves"
 
 # Override from config file if it exists
 if [ -f "$CONFIG" ]; then
@@ -307,10 +308,30 @@ fi
 
 if $update_ok; then
     outdated_formulae=$("$BREW" outdated --formula --quiet 2>/dev/null || true)
+
+    # Apply leaves-only filtering if configured
+    if [ "$UPGRADE_STRATEGY" = "leaves" ]; then
+        log "INFO: Using leaves-only upgrade strategy"
+        leaves=$("$BREW" leaves 2>/dev/null || true)
+
+        # Filter outdated to only include leaves
+        filtered_formulae=""
+        for formula in $outdated_formulae; do
+            if echo "$leaves" | grep -qw "$formula"; then
+                filtered_formulae="$filtered_formulae $formula"
+            fi
+        done
+        outdated_formulae=$(echo "$filtered_formulae" | xargs)
+    fi
+
     formulae_to_upgrade=$(filter_excluded "$outdated_formulae" "$EXCLUDED_FORMULAE")
 
     if [ -n "$formulae_to_upgrade" ]; then
-        log "INFO: Upgrading formulae: $formulae_to_upgrade"
+        if [ "$UPGRADE_STRATEGY" = "leaves" ]; then
+            log "INFO: Upgrading formulae (leaves only): $formulae_to_upgrade"
+        else
+            log "INFO: Upgrading formulae: $formulae_to_upgrade"
+        fi
         set +e  # Temporarily disable exit-on-error to capture exit code
         run_with_timeout 900 "$BREW" upgrade --formula $formulae_to_upgrade
         formula_exit=$?
