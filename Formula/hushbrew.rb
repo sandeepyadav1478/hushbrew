@@ -23,44 +23,32 @@ class Hushbrew < Formula
     (libexec/"launchd").mkpath
     (libexec/"launchd").install "launchd/com.local.hushbrew.plist"
 
-    # Create a wrapper script that users can call
-    (bin/"hushbrew-setup").write <<~EOS
-      #!/bin/bash
-      exec "#{libexec}/hushbrew-setup" "$@"
-    EOS
+    # Install main hushbrew command
+    bin.install "bin/hushbrew"
   end
 
   def caveats
     <<~EOS
-      To complete installation, run the setup script:
-        hushbrew-setup
+      To start hushbrew, run:
+        hushbrew start
 
-      This will:
-        • Copy scripts to ~/.local/bin/
-        • Create config at ~/.config/hushbrew/config
-        • Install LaunchAgent plist
+      This will set up and start automatic Homebrew upgrades.
+      Runs at 10 AM, 2 PM, and 6 PM daily.
 
-      Then start hushbrew:
-        brew services start hushbrew
-
-      Or load manually:
-        launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.local.hushbrew.plist
+      Other commands:
+        hushbrew stop     - Stop the service
+        hushbrew status   - Show status
+        hushbrew logs     - View logs
+        hushbrew run      - Run upgrade manually
+        hushbrew help     - Show all commands
 
       Features:
-        • Runs at 10 AM, 2 PM, 6 PM daily
         • Meeting-aware (Zoom, Slack, mic detection)
         • Power-aware (skips if battery <15%)
         • Bandwidth throttling (60% of detected speed)
-        • Once-daily with automatic retries
 
       Configuration:
-        Edit ~/.config/hushbrew/config to exclude packages
-
-      Logs:
-        tail -f ~/.local/log/hushbrew.log
-
-      Manual run:
-        ~/.local/bin/hushbrew.sh
+        ~/.config/hushbrew/config
     EOS
   end
 
