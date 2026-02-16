@@ -83,7 +83,8 @@ cmd_start() {
 }
 
 cmd_stop() {
-    echo -e "${BLUE}Stopping hushbrew...${NC}"
+    echo -e "${BLUE}Stopping and cleaning up hushbrew...${NC}"
+    echo ""
 
     # Unload our custom LaunchAgent
     launchctl bootout "gui/$(id -u)/com.local.hushbrew" 2>/dev/null
@@ -93,10 +94,40 @@ cmd_stop() {
     brew services stop hushbrew 2>/dev/null || true
 
     if [ $stop_exit -eq 0 ] || [ $stop_exit -eq 3 ]; then
-        echo -e "${GREEN}✓ hushbrew stopped${NC}"
+        echo -e "${GREEN}✓${NC} Service stopped"
     else
-        echo -e "${YELLOW}hushbrew was not running${NC}"
+        echo -e "${YELLOW}○${NC} Service was not running"
     fi
+
+    # Remove user files
+    rm -f "$HOME/.local/bin/hushbrew.sh"
+    rm -f "$HOME/.local/bin/brew-curl"
+    echo -e "${GREEN}✓${NC} Removed scripts from ~/.local/bin/"
+
+    rm -f "$HOME/Library/LaunchAgents/com.local.hushbrew.plist"
+    echo -e "${GREEN}✓${NC} Removed LaunchAgent plist"
+
+    rm -f "$HOME/.local/log/hushbrew.log"
+    rm -f "$HOME/.local/log/hushbrew.log.old"
+    rm -f "$HOME/.local/log/hushbrew.lastrun"
+    echo -e "${GREEN}✓${NC} Removed logs and state files"
+
+    # Try to remove directories if empty
+    rmdir "$HOME/.local/log" 2>/dev/null || true
+    rmdir "$HOME/.local/bin" 2>/dev/null || true
+
+    # Remove lock file
+    rmdir /tmp/hushbrew.lock 2>/dev/null || true
+
+    # Config is preserved
+    if [ -d "$HOME/.config/hushbrew" ]; then
+        echo ""
+        echo -e "${BLUE}Note:${NC} Config preserved at ~/.config/hushbrew/"
+        echo "      Remove manually if needed: rm -rf ~/.config/hushbrew"
+    fi
+
+    echo ""
+    echo -e "${GREEN}Done!${NC} Run 'brew uninstall hushbrew' to complete removal"
 }
 
 cmd_status() {

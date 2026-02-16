@@ -58,14 +58,14 @@ make install
 ### Using Homebrew
 
 ```bash
-hushbrew stop
+hushbrew stop        # Stops service and removes all files
 brew uninstall hushbrew
 ```
 
-Optionally remove config and logs:
+This removes everything except config (preserved for reinstalls).
+To remove config too:
 ```bash
 rm -rf ~/.config/hushbrew
-rm -rf ~/.local/log/hushbrew*
 ```
 
 ### Manual Uninstall

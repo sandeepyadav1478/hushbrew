@@ -58,6 +58,32 @@ class Hushbrew < Formula
     keep_alive false
   end
 
+  def post_uninstall
+    # Stop and unload the LaunchAgent
+    quiet_system "launchctl", "bootout", "gui/#{Process.uid}/com.local.hushbrew"
+  end
+
+  def zap
+    # Remove user files
+    rm_f [
+      "#{Dir.home}/.local/bin/hushbrew.sh",
+      "#{Dir.home}/.local/bin/brew-curl",
+      "#{Dir.home}/.local/log/hushbrew.log",
+      "#{Dir.home}/.local/log/hushbrew.log.old",
+      "#{Dir.home}/.local/log/hushbrew.lastrun",
+      "#{Dir.home}/Library/LaunchAgents/com.local.hushbrew.plist",
+    ]
+
+    # Remove config directory
+    rm_rf "#{Dir.home}/.config/hushbrew"
+
+    # Try to remove directories if empty
+    rmdir ["#{Dir.home}/.local/log", "#{Dir.home}/.local/bin"].select { |d| File.directory?(d) && Dir.empty?(d) }
+
+    # Remove lock file
+    rmdir "/tmp/hushbrew.lock" if File.directory?("/tmp/hushbrew.lock")
+  end
+
   test do
     # Test that scripts have valid syntax
     system "bash", "-n", opt_libexec/"hushbrew.sh"
